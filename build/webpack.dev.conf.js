@@ -51,6 +51,19 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         target: 'http://cangdu.org:8001',
         changeOrigin:true
       },
+      '/shopping':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+      '/v1':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+      '/v2':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+
     },
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {

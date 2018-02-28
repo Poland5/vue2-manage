@@ -29,3 +29,18 @@ export const getUserCount = () => fetch('/v1/users/count');
  * 获取用户列表
  */
 export const getUserList = data => fetch('/v1/users/list', data)
+
+/**
+ * 食物数量
+ */
+export const getFoodCount = data => fetch('/shopping/v2/foods/count',data);
+
+/**
+ * 食物列表
+ */
+export const getFoodList = data => fetch('/shopping/v2/foods', data);
+
+/**
+ * 获取商铺详细信息
+ */
+export const getRestaurantDetail = restaurant_id => fetch('/shopping/restaurant/' + restaurant_id)

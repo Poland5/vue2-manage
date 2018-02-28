@@ -61,5 +61,9 @@ export default {
 .el-submenu .el-menu-item{
   background-color:#1f2d3d !important;
 }
+.main-container{
+  overflow: auto;
+  height: 100%;
+}
 </style>
 

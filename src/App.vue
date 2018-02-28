@@ -19,4 +19,5 @@ export default {
   .el-submenu .el-menu-item{
     min-width: 0;
   }
+
 </style>

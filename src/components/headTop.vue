@@ -54,7 +54,7 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
   @import '~@/style/mixin.less';
   .header-container{
     background-color: #eff2f7;
