@@ -4,7 +4,7 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 	type = type.toUpperCase();
 	url = baseUrl + url;
 
-	if (type == 'GET') {
+	if (type == 'GET') {				
 		let dataStr = ''; //数据拼接字符串
 		Object.keys(data).forEach(key => {
 			dataStr += key + '=' + data[key] + '&';
@@ -13,7 +13,6 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 		if (dataStr !== '') {
 			dataStr = dataStr.substr(0, dataStr.lastIndexOf('&'));
 			url = url + '?' + dataStr;
-			console.log(url);
 		}
 	}
 
@@ -33,6 +32,7 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 			Object.defineProperty(requestConfig, 'body', {
 				value: JSON.stringify(data)
 			})
+			// console.log(JSON.stringify(data));
 		}
 
 		try {

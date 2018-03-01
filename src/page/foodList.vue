@@ -2,7 +2,7 @@
   <div class="fillcontainer">
     <headTop></headTop>
     <div class="table-container">
-      <el-table :data="tableData" style="width: 100%">
+      <el-table @expand='expand' :data="tableData" style="width: 100%">
         <el-table-column type="expand">
           <template slot-scope="props">
             <el-form label-position="left" inline class="demo-table-expand">
@@ -73,15 +73,19 @@
             <el-input v-model="selectFoodsInfo.description" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="食品分类" :label-width="formLabelWidth">
-            <el-select v-model="selectIndex" placeholder="请选择活动区域">
-              <el-option label="区域1" value="1"></el-option>
-              <el-option label="区域2" value="2"></el-option>
+            <el-select v-model="selectIndex" :placeholder="selecteMenu.name" @change="handleSelecte">
+              <el-option
+                v-for="item in menuOptions"
+                :key="item.value"
+                :label="item.lable"
+                :value="item.index">
+              </el-option>
             </el-select>
           </el-form-item>
           <el-form-item label="食物图片" :label-width="formLabelWidth">
             <el-upload
               class="img-uploader"
-              action="https://jsonplaceholder.typicode.com/posts/"
+              :action="baseUrl + '/v1/addimg/food'"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload">
@@ -114,7 +118,7 @@
                   <el-button
                     size="mini"
                     type="danger"
-                    @click="specDelete(scope.$index, scope.row)">删除</el-button>
+                    @click="specDelete(scope.$index)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -122,12 +126,12 @@
           </el-row>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+          <el-button type="primary" @click="updateFoods">确 定</el-button>
         </span>
       </el-dialog>
 
       <el-dialog title="添加规格" :visible.sync="specsFormVisible">
-        <el-form :model="specsForm" :rules="specsRules">
+        <el-form :model="specsForm" :rules="specsRules" ref="specsValidateForm">
           <el-form-item label="规格" prop="specs" :label-width="formLabelWidth">
             <el-input v-model="specsForm.specs" auto-complete="off"></el-input>
           </el-form-item>
@@ -137,10 +141,10 @@
           <el-form-item label="价格" :label-width="formLabelWidth">
             <el-input-number v-model="specsForm.price" :min="20" :max="100"></el-input-number>
           </el-form-item>
-        </el-form>
+        </el-form>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
         <div slot="footer" class="dialog-footer">
           <el-button @click="specsFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="addspecs">确 定</el-button>
+          <el-button type="primary" @click="addspecs()">确 定</el-button>
         </div>
       </el-dialog>
     </div>
@@ -149,8 +153,8 @@
 <script>
 
 import headTop from '@/components/headTop'
-import {getFoodCount,getFoodList,getRestaurantDetail} from '@/api/getData'
-import {baseImgPath} from '@/config/env'
+import {getFoodCount,getFoodList,getRestaurantDetail,getMenu,getMenuById,updateFoods} from '@/api/getData'
+import {baseImgPath,baseUrl} from '@/config/env'
 export default {
   data () {
     return {
@@ -164,11 +168,14 @@ export default {
       selectFoodsInfo:{},
       formLabelWidth:'100px',
       imageUrl:null,
-      selectIndex:1,
+      selectIndex:null,
+      selecteMenu:{},
       baseImgPath,
       specsFormVisible:false,
+      baseUrl,
+      menuOptions:[],
       specsForm:{
-        specs: '',
+        specs: null,
         packing_fee: 0,
         price:0
       },
@@ -233,6 +240,7 @@ export default {
             tableData.description = item.description;
             tableData.image_path = item.image_path;
             tableData.specfoods = item.specfoods;
+            tableData.category_id = item.category_id;
             this.tableData.push(tableData);
           });
         }else{
@@ -242,14 +250,64 @@ export default {
         console.log("数据读取失败", err);
       }
     },
+    //食品表单更新
+    async updateFoods(){
+      this.dialogFormVisible = false;
+      try{
+        const subData = {
+          new_category_id:this.selecteMenu.category_id,
+          specs: this.specsTable
+        };
+        const postData = {...this.selectFoodsInfo,...subData};
+        const res = await updateFoods(postData)
+        if(res.status == 1){
+          this.$message({
+            type: 'success',
+            message: '更新食品信息成功'
+          })
+          this.getFoods();
+        }else{
+          this.$message({
+            type: 'error',
+            message: res.message
+          })
+        }
+      }catch(err){
+        console.log("更新餐馆信息失败", err);
+      }
+    },
+    async getMenu(){
+      this.menuOptions = [];
+      try{
+        const menu = await getMenu({restaurant_id:this.selectFoodsInfo.restaurant_id})
+        menu.forEach((item, index) => {
+          this.menuOptions.push({
+            value:item.id,
+            lable:item.name,
+            index,
+          })
+        })
+      }catch(err){
+        console.log("获取食品种类失败",err);
+      }
+    },
     //编辑
     handleEdit(index,row){
       this.getSelecteItemData(row,'edit');
       this.dialogFormVisible = true;
     },
+    specDelete(index){
+      this.specsTable.splice(index,1)
+    },
+    handleSelecte(index){
+      this.selectIndex = index;
+    },
     async getSelecteItemData(row,type){
       const restaurant = await getRestaurantDetail(row.restaurant_id);
-      this.selectFoodsInfo = {...row,...{description:restaurant.description}};      
+      this.selectFoodsInfo = {...row,...{description:restaurant.description}};
+      const category = await getMenuById(row.category_id);
+      this.selecteMenu = {name:category.name,category_id:row.category_id}
+      this.getMenu();
     },
 
     //删除食物列表
@@ -263,7 +321,11 @@ export default {
       this.currentPage = val;
     },
     handleAvatarSuccess(res, file) {
-      this.imageUrl = URL.createObjectURL(file.raw);
+      if(res.status == 1){
+        this.selectFoodsInfo.image_path = this.image_path;
+      }else{
+        console.log("图片上传失败");
+      }
     },
     beforeAvatarUpload(file) {
       const isJPG = file.type === 'image/jpeg';
@@ -279,8 +341,14 @@ export default {
     },
     //添加规格
     addspecs(){
-      this.specsTable.push({...this.specsForm});
-      this.specsFormVisible = false;
+      this.$refs.specsValidateForm.validate((valid) => {
+        if(valid){
+          this.specsTable.push({...this.specsForm});
+          this.specsFormVisible = false;
+        }else{
+          this.specsFormVisible = true;
+        }
+      })
     }
   }
 }
