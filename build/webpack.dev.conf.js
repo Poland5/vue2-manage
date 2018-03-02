@@ -55,6 +55,26 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         target: 'http://cangdu.org:8001',
         changeOrigin:true
       },
+      '/bos':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+      '/member':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+      '/promotion':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+      '/payapi':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+      '/eus':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
       '/v1':{
         target: 'http://cangdu.org:8001',
         changeOrigin:true
@@ -63,7 +83,14 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         target: 'http://cangdu.org:8001',
         changeOrigin:true
       },
-
+      '/v3':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
+      '/v4':{
+        target: 'http://cangdu.org:8001',
+        changeOrigin:true
+      },
     },
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {

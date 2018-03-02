@@ -3,7 +3,7 @@
     <head-top></head-top>
     <section class="data-section">
       <header class="data-title">数据统计</header>
-      <el-row :gutter="20">
+      <el-row :gutter="20" style="margin-bottom:10px;">
         <el-col :span="4">
           <div class="datalist todaydata">
             <span class="head">当日数据</span>
@@ -15,10 +15,14 @@
           </div>
         </el-col>
         <el-col :span="4">
-          <div class="datalist">{{orderCount}}新增订单</div>
+          <div class="datalist">
+            <span class="data-num">{{orderCount}}</span>新增订单
+          </div>
         </el-col>
         <el-col :span="4">
-          <div class="datalist">{{adminCount}}新增管理员</div>
+          <div class="datalist">
+            <span class="data-num">{{adminCount}}</span>新增管理员
+            </div>
         </el-col>
       </el-row>
       <el-row :gutter="20">
@@ -33,18 +37,24 @@
           </div>
         </el-col>
         <el-col :span="4">
-          <div class="datalist">{{allOrderCount}}订单</div>
+          <div class="datalist">
+            <span class="data-num">{{allOrderCount}}</span>订单
+          </div>
         </el-col>
         <el-col :span="4">
-          <div class="datalist">{{allAdminCount}}管理员</div>
+          <div class="datalist">
+            <span class="data-num">{{allAdminCount}}</span>管理员
+          </div>
         </el-col>
       </el-row>
     </section>
+    <tendency :sevenDay="sevenDay" :sevenData="sevenData"></tendency>
   </div>
 </template>
 <script>
 import headTop from "@/components/headTop";
 import dtime from "time-formater";
+import tendency from "@/components/tendency";
 import { userCount, orderCount, adminCount, getUserCount, getOrderCount, getAdminCount} from "@/api/getData";
 export default {
   data() {
@@ -54,11 +64,13 @@ export default {
       adminCount: null,
       allUserCount: null,
       allOrderCount: null,
-      allAdminCount: null
+      allAdminCount: null,
+      sevenData:[],
+      sevenDay:[[],[],[]],
     };
   },
   components: {
-    headTop
+    headTop,tendency
   },
   mounted() {
     this.initData();
@@ -66,7 +78,7 @@ export default {
   methods: {
     async initData() {
       const today = dtime().format("YYYY-MM-DD");
-      Promise.all([userCount(today), orderCount(today), adminCount(today), getUserCount(), getOrderCount(), getAdminCount()])
+      Promise.all([userCount(today), orderCount(today), adminCount(today), getUserCount(today), getOrderCount(), getAdminCount()])
         .then(res => {
           this.userCount = res[0].count;
           this.orderCount = res[1].count;
@@ -96,6 +108,9 @@ export default {
     border-radius: 6px;
     text-align: center;
     font-size: 14px;
+    height: 40px;
+    line-height: 40px;
+    align-items: center;
     .head {
       display: inline-block;
       font-size: 22px;
