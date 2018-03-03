@@ -38,7 +38,7 @@ export const getOrderCount = () => fetch('/bos/orders/count');
 /**
  * 所有用户注册量
  */
-export const getUserCount = data => fetch('/v1/users/count', data);
+export const getUserCount = () => fetch('/v1/users/count');
 
 /**
  * 获取管理员数量

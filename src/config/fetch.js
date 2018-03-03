@@ -5,7 +5,7 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 	url = baseUrl + url;
 
 	if (type == 'GET') {				
-		let dataStr = ''; //数据拼接字符串
+		let dataStr = ''; 
 		Object.keys(data).forEach(key => {
 			dataStr += key + '=' + data[key] + '&';
 		})
@@ -32,7 +32,6 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 			Object.defineProperty(requestConfig, 'body', {
 				value: JSON.stringify(data)
 			})
-			// console.log(JSON.stringify(data));
 		}
 
 		try {

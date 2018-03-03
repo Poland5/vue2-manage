@@ -65,8 +65,8 @@ export default {
       allUserCount: null,
       allOrderCount: null,
       allAdminCount: null,
-      sevenData:[],
-      sevenDay:[[],[],[]],
+      sevenDay:[],
+      sevenData:[[],[],[]],
     };
   },
   components: {
@@ -74,6 +74,12 @@ export default {
   },
   mounted() {
     this.initData();
+    for(let i = 6; i > -1; i--){
+      const data = dtime(new Date().getTime() - 86400000 * i).format("YYYY-MM-DD");
+      this.sevenDay.push(data);
+    }
+    //获取最近七天的数据
+    this.getSevenData();
   },
   methods: {
     async initData() {
@@ -90,6 +96,26 @@ export default {
         .catch(err => {
           console.log(err);
         });
+    },
+    async getSevenData(){
+      const apiArr = [[],[],[]];
+      this.sevenDay.forEach(item => {
+        apiArr[0].push(userCount(item));
+        apiArr[1].push(orderCount(item));
+        apiArr[2].push(adminCount(item));
+      });
+      const promiseArr = [...apiArr[0],...apiArr[1],...apiArr[2]];
+      Promise.all(promiseArr).then(res => {
+        const resArr = [[],[],[]];
+        res.forEach((item, index) => {
+          if(item.status == 1){
+            resArr[Math.floor(index/7)].push(item.count);
+          }
+          this.sevenData = resArr;
+        })
+      }).catch(err => {
+        console.log("数据读取失败"+ err);
+      })
     }
   }
 };

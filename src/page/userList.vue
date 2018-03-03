@@ -2,8 +2,9 @@
   <div class="fillcontainer">
     <head-top></head-top>
     <div class="table-container">
-      <el-table border
+      <el-table
         :data="tableData"
+        highlight-current-row
         style="width:100%">
         <el-table-column 
           type="index"
@@ -28,11 +29,12 @@
    <div class="pagination">
       <div class="block">
         <el-pagination
+          background  
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          :current-page="currentPage"
-          :page-size="20"
-          layout="total, sizes, prev, pager, next, jumper"
+          :current-page.sync="currentPage"
+          :page-size="pageSize"
+          layout="total, prev, pager, next"
           :total="count">
         </el-pagination>
       </div>
@@ -41,19 +43,16 @@
 </template>
 <script>
 import headTop from '@/components/headTop'
-import {getUserCount} from '@/api/getData'
+import {getUserCount, getUserList} from '@/api/getData'
 export default {
   data () {
     return {
-      tableData:[{
-        registe_time:'200',
-        username:'王晓红',
-        registe_city:'广州市哪里'
-      },],
+      tableData:[],
       limit:20,
       currentPage: 1,
       count:0,
       offset:0,
+      pageSize:20
     }
   },
   components: {
@@ -74,23 +73,37 @@ export default {
         }
       }catch(err){
         console.log("获取数据失败",err);
-      }
+      };
+      this.getUserList();
     },
-    //获取用户列表
+    async getUserList(){
+      this.tableData = [];
+      const userList = await getUserList({offset:this.offset,limit:this.limit});
+      userList.forEach((item,index) => {
+        const tableData = {};
+        tableData.username = item.username;
+        tableData.registe_city = item.city;
+        tableData.registe_time = item.registe_time;
+        this.tableData.push(tableData);
+      });
+    },
     handleSizeChange(val) {
       console.log(`每页 ${val} 条`);
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`);
+      this.currentPage = val;
+      this.offset = (val-1)*this.limit;
+      this.getUserList();
     },
   },
 }
 </script>
 <style lang="less">
   .table-container{
-    padding:20px;
+    padding:10px;
   }
   .pagination{
-    margin-left: 20px;
+    margin-left: 10px;
+    margin-bottom: 10px;
   }
 </style>

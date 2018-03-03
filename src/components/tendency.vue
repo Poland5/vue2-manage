@@ -122,6 +122,14 @@ export default {
       // 使用刚指定的配置项和数据显示图表。
         this.myEcharts.setOption(option);
     }
+  },
+  watch: {
+    sevenDay:function(){
+      this.initData();
+    },
+    sevenData:function(){
+      this.initData();
+    }
   }
 }
 </script>
@@ -129,5 +137,6 @@ export default {
   .tendency-wrap{
     display: flex;
     justify-content:center;
+    margin-top:50px;
   }
 </style>
