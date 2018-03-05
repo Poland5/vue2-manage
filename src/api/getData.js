@@ -79,3 +79,28 @@ export const getMenuById = category_id => fetch('/shopping/v2/menu/' + category_
  * 更新食品
  */
 export const updateFoods = data => fetch('/shopping/v2/updatefood', data, 'POST');
+
+/**
+ * 获取城市经纬度
+ */
+export const guessCity = () => fetch('/v1/cities', {type:'guess'});
+
+/**
+ * 获取商铺列表
+ */
+export const getShopList = data => fetch('/shopping/restaurants', data);
+
+/**
+ * 删除商铺
+ */
+export const deleteRestaurant = restaurant_id => fetch('/shopping/restaurant/' + restaurant_id);
+
+/**
+ * 获取所有商铺分类列表
+ */
+export const getCategory = () => fetch('/shopping/v2/restaurant/category');
+
+/**
+ * 更新商铺信息
+ */
+export const updateShop = data => fetch('/shopping/updateshop',data);

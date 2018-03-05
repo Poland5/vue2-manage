@@ -8,6 +8,7 @@ const manage = r => require.ensure([], () => r(require('@/page/manage')), 'manag
 const home = r => require.ensure([], () => r(require('@/page/home')), 'home');
 const userList = r => require.ensure([], () => r(require('@/page/userList')), 'userList');
 const foodList = r => require.ensure([], () => r(require('@/page/foodList')), 'foodList');
+const shopList = r => require.ensure([], () => r(require('@/page/shopList')), 'shopList');
 
 const routes = [
   {
@@ -30,6 +31,10 @@ const routes = [
       path: '/foodList',
       component: foodList,
       meta: ["数据管理","食物列表"],
+    },{
+      path: '/shopList',
+      component: shopList,
+      meta: ["数据管理","商家列表"],
     }]
   }
 ]
