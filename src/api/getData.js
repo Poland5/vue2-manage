@@ -103,4 +103,18 @@ export const getCategory = () => fetch('/shopping/v2/restaurant/category');
 /**
  * 更新商铺信息
  */
-export const updateShop = data => fetch('/shopping/updateshop',data);
+export const updateShop = data => fetch('/shopping/updateshop', data, 'POST');
+
+/**
+ * 搜索地址
+ */
+export const queryCity = (city_id, address) => fetch('/v1/pois',{
+  city_id:city_id,
+  keyword:address, 
+  type:'search'
+});
+
+/**
+ * 获取店铺食品种类
+ */
+export const getCategoryList = restaurant_id => fetch('/shopping/getcategory/' + restaurant_id);

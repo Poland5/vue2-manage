@@ -49,11 +49,14 @@
         </el-table-column>
         <el-table-column
           label="操作"
-          width="180">
+          width="250">
           <template slot-scope="scope">
             <el-button
               size="mini"
               @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-button
+            size="mini"
+            @click="addGoods(scope.$index, scope.row)">添加食品</el-button>
             <el-button
               size="mini"
               type="danger"
@@ -67,8 +70,14 @@
             <el-input v-model="shopDialogForm.name"></el-input>
           </el-form-item>
           <el-form-item label="详细地址" :label-width="formLabelWidth">
-            <el-input v-model="shopDialogForm.address"></el-input>
-            <span>当前城市：广州</span>
+            <el-autocomplete
+              style="width:100%"
+              v-model="address.address"
+              :fetch-suggestions="querySearch"
+              placeholder="请输入地址"
+              @select="addressSelect">
+            </el-autocomplete>
+            <span>当前城市：{{city.name}}</span>
           </el-form-item>
           <el-form-item label="店铺介绍" :label-width="formLabelWidth">
             <el-input v-model="shopDialogForm.description"></el-input>
@@ -77,11 +86,11 @@
             <el-input v-model="shopDialogForm.phone"></el-input>
           </el-form-item>
           <el-form-item label="店铺分类" :label-width="formLabelWidth">
-              <el-cascader
-                :options="categoryOptions"
-                v-model="selecteShopOptions"
-                change-on-select>
-              </el-cascader>
+            <el-cascader
+              :options="categoryOptions"
+              v-model="selecteShopOptions"
+              change-on-select>
+            </el-cascader>
           </el-form-item>
           <el-form-item label="店铺分类" :label-width="formLabelWidth">
             <el-upload
@@ -95,39 +104,31 @@
             </el-upload>
           </el-form-item>
         </el-form>
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogFormVisible = false">取消</el-button>
-            <el-button type="primary" @click="updateShop">确定</el-button>
-          </span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible = false">取消</el-button>
+          <el-button type="primary" @click="updateShop">确定</el-button>
+        </span>
       </el-dialog>
     </div>
   </div>
 </template>
 <script>
-import {guessCity, getShopList, deleteRestaurant, getCategory, updateShop} from '@/api/getData'
+import {guessCity, getShopList, deleteRestaurant, getCategory, updateShop, queryCity} from '@/api/getData'
 import {baseUrl,baseImgPath} from '@/config/env'
 import headTop from '@/components/headTop'
 export default {
   data () {
     return {
-      tableData:[{
-        id:'1',
-        name:'名称',
-        address:'地址',
-        description:'介绍',
-        phone:'135',
-        rating:'3',
-        sale_num:'50',
-        category:'分类'
-      }],
+      tableData:[],
       shopDialogForm:{},
       categoryOptions: [],
       selecteShopOptions:[],
       formLabelWidth:'120px',
       limit:20,
       offset:0,
-      getLal:{},
+      city:{},
       dialogFormVisible:false, 
+      address:{},
       baseUrl,
       baseImgPath
     }
@@ -140,12 +141,12 @@ export default {
   },
   methods: {
     async initData(){
-      this.getLal = await guessCity();
+      this.city = await guessCity();
       this.shopList();
     },
     async shopList(){
       this.tableData = [];
-      const shopList = await getShopList({limit:this.limit,offset:this.offset,latitude:this.getLal.latitude,longitude:this.getLal.longitude});
+      const shopList = await getShopList({limit:this.limit,offset:this.offset,latitude:this.city.latitude,longitude:this.city.longitude});
       shopList.forEach(item => {
         let tableData = {};
         tableData.id = item.id;
@@ -156,14 +157,13 @@ export default {
         tableData.rating = item.rating;
         tableData.sale_num = item.recent_order_num;
         tableData.category = item.category;
+        tableData.image_path = item.image_path;
         this.tableData.push(tableData);
       })
     },
     handleEdit(index,row){
-      this.shopDialogForm.name = row.name;
-      this.shopDialogForm.address = row.address;
-      this.shopDialogForm.description = row.description;
-      this.shopDialogForm.phone = row.phone;
+      this.shopDialogForm = row;
+      this.address.address = row.address;
       this.selecteShopOptions = row.category.split('/');
       if(this.selecteShopOptions.length){
         this.getCategory();
@@ -230,14 +230,50 @@ export default {
         console.log("删除失败");
       }
     },
+    addressSelect(item){
+      const {address,longitude,latitude} = item;
+      this.address = {address,longitude,latitude};
+    },
+    addGoods(index,row){
+      this.$router.push({path:'addGoods',query:{restaurant_id:row.id}});
+    },
+    async querySearch(queryString, cb){
+      if(queryString){
+        try{
+          const cityList = await queryCity(this.city.id, queryString);
+          if(cityList instanceof Array){
+            cityList.map(item => {
+              item.value = item.address;
+              return item;
+            })
+            //绑定value值，数据准备好时通过 cb(data) 返回到 autocomplete 组件中
+            cb(cityList);
+          }
+        }catch(err){
+          console.log("搜索地址失败",err);
+        }
+      }
+    },
     async updateShop(){
-      const res = await updateShop();
-    }
-  },
-  watch: {
-    shopDialogForm:function(value){
-      console.log(value);
-      
+      Object.assign(this.shopDialogForm,this.address)
+      this.shopDialogForm.category = this.selecteShopOptions.join("/");
+      const res = await updateShop(this.shopDialogForm);
+      try{
+        if(res.status == 1){
+          this.$message({
+            message:"更新成功",
+            type:"success"
+          });
+          this.dialogFormVisible = false;
+        }else{
+          this.$message({
+            message:error.message,
+            type:"error"
+          });
+        }
+      }catch(err){
+        console.log("数据更新失败", err);
+      }
     }
   }
 }

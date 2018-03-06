@@ -13,6 +13,8 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 		if (dataStr !== '') {
 			dataStr = dataStr.substr(0, dataStr.lastIndexOf('&'));
 			url = url + '?' + dataStr;
+			console.log(url);
+			
 		}
 	}
 
