@@ -118,3 +118,8 @@ export const queryCity = (city_id, address) => fetch('/v1/pois',{
  * 获取店铺食品种类
  */
 export const getCategoryList = restaurant_id => fetch('/shopping/getcategory/' + restaurant_id);
+
+/**
+ * 添加食品种类
+ */
+export const addCategory = data => fetch('/shopping/addcategory', data, 'POST' );
