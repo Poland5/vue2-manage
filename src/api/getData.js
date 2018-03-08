@@ -123,3 +123,8 @@ export const getCategoryList = restaurant_id => fetch('/shopping/getcategory/' +
  * 添加食品种类
  */
 export const addCategory = data => fetch('/shopping/addcategory', data, 'POST' );
+
+/**
+ * 添加食品
+ */
+export const addFoods = data => fetch('/shopping/addfood', data, 'POST');
