@@ -212,10 +212,10 @@ export default {
         const result = await getCategoryList(this.restaurant_id);
         if (result.status == 1) {
           result.category_list.map((item, index) => {
-            item.name = item.name;
             item.value = index;
           });
           this.categoryForm.categoryList = result.category_list;
+          console.log(this.categoryForm.categoryList);
         } else {
           console.log(result);
         }

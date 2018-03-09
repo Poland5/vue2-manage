@@ -2,7 +2,11 @@
   <div class="fillcontainer">
     <headTop></headTop>
     <div class="table-container">
-      <el-table @expand='expand' :data="tableData" style="width: 100%">
+      <el-table 
+        @expand-change='expand'
+        current-row-key='rowKey'
+        :data="tableData"
+        style="width: 100%">
         <el-table-column type="expand">
           <template slot-scope="props">
             <el-form label-position="left" inline class="demo-table-expand">
@@ -18,6 +22,12 @@
               <el-form-item label="餐馆 ID">
                 <span>{{ props.row.restaurant_id }}</span>
               </el-form-item>
+              <el-form-item label="食品介绍">
+                <span>{{ props.row.description}}</span>
+              </el-form-item>
+              <el-form-item label="餐馆地址">
+                <span>{{ props.row.address}}</span>
+              </el-form-item>
               <el-form-item label="食物评分">
                 <span>{{ props.row.rating }}</span>
               </el-form-item>
@@ -25,7 +35,7 @@
                 <span>{{ props.row.food_category }}</span>
               </el-form-item>
               <el-form-item label="月销量">
-                <span>{{ props.row.mouth_sales }}</span>
+                <span>{{ props.row.month_sales }}</span>
               </el-form-item>
             </el-form>
           </template>
@@ -97,17 +107,14 @@
           <el-row style="text-align:center">
             <el-table
               :data="specsTable"
-              style="width: 100%; border:1px solid #eee; border-bottom:none"
-              >
+              style="width: 100%; border:1px solid #eee; border-bottom:none">
               <el-table-column
                 prop="specs"
-                label="规格"
-                >
+                label="规格">
               </el-table-column>
               <el-table-column
                 prop="packing_fee"
-                label="包装费"
-                >
+                label="包装费">
               </el-table-column>
               <el-table-column
                 prop="price"
@@ -174,6 +181,8 @@ export default {
       specsFormVisible:false,
       baseUrl,
       menuOptions:[],
+      expendRow:[],
+      formIndex:[],
       specsForm:{
         specs: null,
         packing_fee: 0,
@@ -236,7 +245,7 @@ export default {
             tableData.item_id = item.item_id;
             tableData.restaurant_id = item.restaurant_id;
             tableData.rating = item.rating;
-            tableData.month_sales = item.mouth_sales;
+            tableData.month_sales = item.month_sales;
             tableData.description = item.description;
             tableData.image_path = item.image_path;
             tableData.specfoods = item.specfoods;
@@ -291,6 +300,19 @@ export default {
         console.log("获取食品种类失败",err);
       }
     },
+    toggleRowExpansion(row, expanded){
+      console.log(expanded);
+      
+    },
+    expand(row,expandedRows){
+      
+      if(row){
+        this.getSelecteItemData(row);
+      }else{
+        const index = this.expendRow.indexOf(row.index);
+        this.expendRow.splice(index, 1)
+      }
+    },
     //编辑
     handleEdit(index,row){
       this.getSelecteItemData(row,'edit');
@@ -303,10 +325,14 @@ export default {
       this.selectIndex = index;
     },
     async getSelecteItemData(row,type){
+      
       const restaurant = await getRestaurantDetail(row.restaurant_id);
-      this.selectFoodsInfo = {...row,...{description:restaurant.description}};
       const category = await getMenuById(row.category_id);
+      
+      this.selectFoodsInfo = {...row,...{description:restaurant.description,restaurant_address:restaurant.address}};
+      
       this.selecteMenu = {name:category.name,category_id:row.category_id}
+      
       this.getMenu();
     },
 
