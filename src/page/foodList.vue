@@ -76,12 +76,12 @@
 
       <!--食物更新-->
       <el-dialog title="修改食物信息" :visible.sync="dialogFormVisible">
-        <el-form :model="selectFoodsInfo">
+        <el-form :model="selectFoods">
           <el-form-item label="食品名称" :label-width="formLabelWidth">
-            <el-input v-model="selectFoodsInfo.name" auto-complete="off"></el-input>
+            <el-input v-model="selectFoods.name" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="食品介绍" :label-width="formLabelWidth">
-            <el-input v-model="selectFoodsInfo.description" auto-complete="off"></el-input>
+            <el-input v-model="selectFoods.description" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="食品分类" :label-width="formLabelWidth">
             <el-select v-model="selectIndex" :placeholder="selectMenu.label" @change="handleSelect">
@@ -100,7 +100,7 @@
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload">
-              <img v-if="selectFoodsInfo.image_path" :src="baseImgPath + selectFoodsInfo.image_path" class="avatar">
+              <img v-if="selectFoods.image_path" :src="baseImgPath + selectFoods.image_path" class="avatar">
               <i v-else class="el-icon-plus img-uploader-icon"></i>
             </el-upload>
           </el-form-item>
@@ -132,7 +132,7 @@
             </el-table>
             <el-button type="primary" style="margin-top:10px" @click="specsFormVisible = true">添加规格</el-button>
           </el-row>
-        <span slot="footer" class="dialog-footer">
+        <span slot="footer">
           <el-button @click="dialogFormVisible = false">取 消</el-button>
           <el-button type="primary" @click="updateFoods">确 定</el-button>
         </span>
@@ -150,9 +150,9 @@
             <el-input-number v-model="specsForm.price" :min="20" :max="100"></el-input-number>
           </el-form-item>
         </el-form>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-        <div slot="footer" class="dialog-footer">
+        <div slot="footer">
           <el-button @click="specsFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="addspecs()">确 定</el-button>
+          <el-button type="primary" @click="addspecs">确 定</el-button>
         </div>
       </el-dialog>
     </div>
@@ -180,7 +180,7 @@ export default {
       limit: 20,
       currentPage: 1,
       tableData: [],
-      selectFoodsInfo: {},
+      selectFoods: {},
       formLabelWidth: "100px",
       imageUrl: null,
       selectIndex: null,
@@ -212,8 +212,8 @@ export default {
   computed: {
     specsTable: function() {
       let specs = [];
-      if (this.selectFoodsInfo.specfoods) {
-        this.selectFoodsInfo.specfoods.forEach(item => {
+      if (this.selectFoods.specfoods) {
+        this.selectFoods.specfoods.forEach(item => {
           specs.push({
             specs: item.specs_name,
             packing_fee: item.packing_fee,
@@ -239,7 +239,15 @@ export default {
         console.log("数据读取失败", err);
       }
     },
-
+    expand(row, expandedRows) {
+      this.flag = !this.flag;
+      if (this.flag) {
+        this.getSelecteItemData(row);
+      } else {
+        const index = this.expendRow.indexOf(row.index);
+        this.expendRow.splice(index, 1);
+      }
+    },
     //获取食物列表
     async getFoods() {
       try {
@@ -271,12 +279,22 @@ export default {
         console.log("数据读取失败", err);
       }
     },
-  
+    handleEdit(index, row) {
+      this.getSelecteItemData(row, "edit");
+      this.dialogFormVisible = true;
+    },
+    specDelete(index) {
+      this.specsTable.splice(index, 1);
+    },
+    handleSelect(index) {
+      this.selectIndex = index;
+      this.selectMenu = this.menuOptions[index];
+    },
     async getMenu() {
       this.menuOptions = [];
       try {
         const menu = await getMenu({
-          restaurant_id: this.selectFoodsInfo.restaurant_id,
+          restaurant_id: this.selectFoods.restaurant_id,
           allMenu: true
         });
         menu.forEach((item, index) => {
@@ -290,32 +308,11 @@ export default {
         console.log("获取食品种类失败", err);
       }
     },
-    expand(row, expandedRows) {
-      this.flag = !this.flag;
-      if (this.flag) {
-        this.getSelecteItemData(row);
-      } else {
-        const index = this.expendRow.indexOf(row.index);
-        this.expendRow.splice(index, 1);
-      }
-    },
-    //编辑
-    handleEdit(index, row) {
-      this.getSelecteItemData(row, "edit");
-      this.dialogFormVisible = true;
-    },
-    specDelete(index) {
-      this.specsTable.splice(index, 1);
-    },
-    handleSelect(index) {
-      this.selectIndex = index;
-      this.selectMenu = this.menuOptions[index];
-    },
     async getSelecteItemData(row, type) {
       const restaurant = await getRestaurantDetail(row.restaurant_id);
       const category = await getMenuById(row.category_id);
 
-      this.selectFoodsInfo = {
+      this.selectFoods = {
         ...row,
         ...{
           restaurant_name: restaurant.name,
@@ -324,12 +321,13 @@ export default {
         }
       };
       this.selectMenu = { label: category.name, value: row.category_id };
-      this.tableData.splice(row.index, 1, { ...this.selectFoodsInfo });
-
-      this.$nextTick(() => {
-        this.expendRow.push(row.index);
-      });
-      this.getMenu();
+      this.tableData.splice(row.index, 1, { ...this.selectFoods });
+      // this.$nextTick(() => {
+      //   this.expendRow.push(row.index);
+      // });
+      if(type == 'edit' && this.restaurant_id != row.restaurant_id){
+        this.getMenu();
+      }
     },
     //删除食物列表
     async handleDelete(index, row) {
@@ -356,10 +354,12 @@ export default {
     },
     handleCurrentChange(val) {
       this.currentPage = val;
+      this.offset = this.limit * (val - 1);
+      this.getFoods();
     },
     handleAvatarSuccess(res, file) {
       if (res.status == 1) {
-        this.selectFoodsInfo.image_path = res.image_path;
+        this.selectFoods.image_path = res.image_path;
       } else {
         console.log("图片上传失败");
       }
@@ -392,10 +392,10 @@ export default {
       this.dialogFormVisible = false;
       try {
         const subData = {
-          category_id: this.selectMenu.value,
+          new_category_id: this.selectMenu.value,
           specs: this.specsTable
         };
-        const postData = { ...this.selectFoodsInfo, ...subData };
+        const postData = { ...this.selectFoods, ...subData };
         const res = await updateFoods(postData);
         if (res.status == 1) {
           this.$message({

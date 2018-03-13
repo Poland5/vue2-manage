@@ -5,7 +5,8 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 	type = type.toUpperCase();
 	url = baseUrl + url;
 
-	if (type == 'GET') {				
+	if (type == 'GET') {	
+					
 		let dataStr = ''; 
 		Object.keys(data).forEach(key => {
 			dataStr += key + '=' + data[key] + '&';
@@ -14,9 +15,8 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 		if (dataStr !== '') {
 			dataStr = dataStr.substr(0, dataStr.lastIndexOf('&'));
 			url = url + '?' + dataStr;
-			console.log(url);
-			
 		}
+		console.log(url);
 	}
 
 	if (window.fetch && method == 'fetch') {

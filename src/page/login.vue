@@ -46,17 +46,17 @@ import {mapState, mapActions} from 'vuex'
     },
     mounted(){
       this.showLogin = true;
-      // if(!this.adminInfo.id){
-      //   this.getAdminData()
-      // }
+      if(!this.adminInfo.id){
+        this.getAdminData()
+      }
     },
     computed: {
-      ...mapState[(
+      ...mapState([
         'adminInfo'
-      )]
+      ])
     },
     methods: {
-      ...mapActions[('getAdminData')],
+      ...mapActions(['getAdminData']),
       async submitForm(formName){
         this.$refs[formName].validate(async(valid) => {
           if(valid){
