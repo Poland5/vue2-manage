@@ -128,3 +128,8 @@ export const addCategory = data => fetch('/shopping/addcategory', data, 'POST' )
  * 添加食品
  */
 export const addFoods = data => fetch('/shopping/addfood', data, 'POST');
+
+/**
+ * 删除食品
+ */
+export const deleteFoods = food_id => fetch('/shopping/v2/food/'+ food_id, {}, 'DELETE');

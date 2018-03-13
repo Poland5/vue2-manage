@@ -4,8 +4,9 @@
     <div class="table-container">
       <el-table 
         @expand-change='expand'
-        current-row-key='rowKey'
         :data="tableData"
+        :expand-row-keys='expendRow'
+        :row-key="row => row.index"
         style="width: 100%">
         <el-table-column type="expand">
           <template slot-scope="props">
@@ -26,13 +27,13 @@
                 <span>{{ props.row.description}}</span>
               </el-form-item>
               <el-form-item label="餐馆地址">
-                <span>{{ props.row.address}}</span>
+                <span>{{ props.row.restaurant_address}}</span>
               </el-form-item>
               <el-form-item label="食物评分">
                 <span>{{ props.row.rating }}</span>
               </el-form-item>
               <el-form-item label="食物分类">
-                <span>{{ props.row.food_category }}</span>
+                <span>{{ props.row.category_name }}</span>
               </el-form-item>
               <el-form-item label="月销量">
                 <span>{{ props.row.month_sales }}</span>
@@ -83,7 +84,7 @@
             <el-input v-model="selectFoodsInfo.description" auto-complete="off"></el-input>
           </el-form-item>
           <el-form-item label="食品分类" :label-width="formLabelWidth">
-            <el-select v-model="selectIndex" :placeholder="selecteMenu.name" @change="handleSelecte">
+            <el-select v-model="selectIndex" :placeholder="selectMenu.label" @change="handleSelect">
               <el-option
                 v-for="item in menuOptions"
                 :key="item.value"
@@ -158,87 +159,97 @@
   </div>
 </template>
 <script>
-
-import headTop from '@/components/headTop'
-import {getFoodCount,getFoodList,getRestaurantDetail,getMenu,getMenuById,updateFoods} from '@/api/getData'
-import {baseImgPath,baseUrl} from '@/config/env'
+import headTop from "@/components/headTop";
+import {
+  getFoodCount,
+  getFoodList,
+  getRestaurantDetail,
+  getMenu,
+  getMenuById,
+  updateFoods,
+  deleteFoods
+} from "@/api/getData";
+import { baseImgPath, baseUrl } from "@/config/env";
 export default {
-  data () {
+  data() {
     return {
-      dialogFormVisible:false,
+      dialogFormVisible: false,
       restaurant_id: null,
       count: 0,
       offset: 0,
       limit: 20,
       currentPage: 1,
       tableData: [],
-      selectFoodsInfo:{},
-      formLabelWidth:'100px',
-      imageUrl:null,
-      selectIndex:null,
-      selecteMenu:{},
+      selectFoodsInfo: {},
+      formLabelWidth: "100px",
+      imageUrl: null,
+      selectIndex: null,
+      selectMenu: {},
+      specsFormVisible: false,
       baseImgPath,
-      specsFormVisible:false,
       baseUrl,
-      menuOptions:[],
-      expendRow:[],
-      formIndex:[],
-      specsForm:{
+      menuOptions: [],
+      formIndex: [],
+      expendRow: [],
+      flag: false,
+      specsForm: {
         specs: null,
         packing_fee: 0,
-        price:0
+        price: 0
       },
-      specsRules:{
-        specs:[
-          { required: true, message: '规格不能为空', trigger: 'blur'},
-        ]
+      specsRules: {
+        specs: [{ required: true, message: "规格不能为空", trigger: "blur" }]
       }
-    }
+    };
   },
   components: {
     headTop
   },
-  created () {
+  created() {
     this.restaurant_id = this.$route.query.restaurant_id;
     this.initData();
   },
   computed: {
-    specsTable:function(){
+    specsTable: function() {
       let specs = [];
-      if(this.selectFoodsInfo.specfoods){
+      if (this.selectFoodsInfo.specfoods) {
         this.selectFoodsInfo.specfoods.forEach(item => {
           specs.push({
             specs: item.specs_name,
             packing_fee: item.packing_fee,
             price: item.price
-          })
-        })
+          });
+        });
       }
       return specs;
     }
   },
   methods: {
     //获取食物数量
-    async initData(){
-      try{
-        const countData = await getFoodCount({restaurant_id:this.restaurant_id});
-        if(countData.status == 1){
+    async initData() {
+      try {
+        const countData = await getFoodCount({restaurant_id: this.restaurant_id});
+        if (countData.status == 1) {
           this.count = countData.count;
-        }else{
+        } else {
           throw new Error("数据读取失败");
         }
         this.getFoods();
-      }
-      catch(err){
+      } catch (err) {
         console.log("数据读取失败", err);
       }
     },
+
     //获取食物列表
-    async getFoods(){
-      try{
-        const foods = await getFoodList({offset:this.offset, limit: this.limit, restaurant_id:this.restaurant_id});
+    async getFoods() {
+      try {
+        const foods = await getFoodList({
+          offset: this.offset,
+          limit: this.limit,
+          restaurant_id: this.restaurant_id
+        });
         this.tableData = [];
-        if(foods){
+        if (foods) {
           foods.forEach((item, index) => {
             const tableData = {};
             tableData.name = item.name;
@@ -250,169 +261,195 @@ export default {
             tableData.image_path = item.image_path;
             tableData.specfoods = item.specfoods;
             tableData.category_id = item.category_id;
+            tableData.index = index;
             this.tableData.push(tableData);
           });
-        }else{
-          throw new Error("数据读取失败")
+        } else {
+          throw new Error("数据读取失败");
         }
-      }catch(err){
+      } catch (err) {
         console.log("数据读取失败", err);
       }
     },
-    //食品表单更新
-    async updateFoods(){
-      this.dialogFormVisible = false;
-      try{
-        const subData = {
-          new_category_id:this.selecteMenu.category_id,
-          specs: this.specsTable
-        };
-        const postData = {...this.selectFoodsInfo,...subData};
-        const res = await updateFoods(postData)
-        if(res.status == 1){
-          this.$message({
-            type: 'success',
-            message: '更新食品信息成功'
-          })
-          this.getFoods();
-        }else{
-          this.$message({
-            type: 'error',
-            message: res.message
-          })
-        }
-      }catch(err){
-        console.log("更新餐馆信息失败", err);
-      }
-    },
-    async getMenu(){
+  
+    async getMenu() {
       this.menuOptions = [];
-      try{
-        const menu = await getMenu({restaurant_id:this.selectFoodsInfo.restaurant_id})
+      try {
+        const menu = await getMenu({
+          restaurant_id: this.selectFoodsInfo.restaurant_id,
+          allMenu: true
+        });
         menu.forEach((item, index) => {
           this.menuOptions.push({
-            value:item.id,
-            lable:item.name,
-            index,
-          })
-        })
-      }catch(err){
-        console.log("获取食品种类失败",err);
+            value: item.id,
+            lable: item.name,
+            index
+          });
+        });
+      } catch (err) {
+        console.log("获取食品种类失败", err);
       }
     },
-    toggleRowExpansion(row, expanded){
-      console.log(expanded);
-      
-    },
-    expand(row,expandedRows){
-      
-      if(row){
+    expand(row, expandedRows) {
+      this.flag = !this.flag;
+      if (this.flag) {
         this.getSelecteItemData(row);
-      }else{
+      } else {
         const index = this.expendRow.indexOf(row.index);
-        this.expendRow.splice(index, 1)
+        this.expendRow.splice(index, 1);
       }
     },
     //编辑
-    handleEdit(index,row){
-      this.getSelecteItemData(row,'edit');
+    handleEdit(index, row) {
+      this.getSelecteItemData(row, "edit");
       this.dialogFormVisible = true;
     },
-    specDelete(index){
-      this.specsTable.splice(index,1)
+    specDelete(index) {
+      this.specsTable.splice(index, 1);
     },
-    handleSelecte(index){
+    handleSelect(index) {
       this.selectIndex = index;
+      this.selectMenu = this.menuOptions[index];
     },
-    async getSelecteItemData(row,type){
-      
+    async getSelecteItemData(row, type) {
       const restaurant = await getRestaurantDetail(row.restaurant_id);
       const category = await getMenuById(row.category_id);
-      
-      this.selectFoodsInfo = {...row,...{description:restaurant.description,restaurant_address:restaurant.address}};
-      
-      this.selecteMenu = {name:category.name,category_id:row.category_id}
-      
+
+      this.selectFoodsInfo = {
+        ...row,
+        ...{
+          restaurant_name: restaurant.name,
+          restaurant_address: restaurant.address,
+          category_name: category.name
+        }
+      };
+      this.selectMenu = { label: category.name, value: row.category_id };
+      this.tableData.splice(row.index, 1, { ...this.selectFoodsInfo });
+
+      this.$nextTick(() => {
+        this.expendRow.push(row.index);
+      });
       this.getMenu();
     },
-
     //删除食物列表
-    handleDelete(index,row){
-
+    async handleDelete(index, row) {
+      const res = await deleteFoods(row.item_id);
+      try {
+        if (res.status == 1) {
+          this.$message({
+            type: "success",
+            message: res.success
+          });
+          this.tableData.splice(index, 1);
+        } else {
+          throw new Error(res.message);
+        }
+      } catch (err) {
+        this.$message({
+          type: "error",
+          message: res.message
+        });
+      }
     },
-    handleSizeChange(val){
+    handleSizeChange(val) {
       console.log(`每页${val}条`);
     },
-    handleCurrentChange(val){
+    handleCurrentChange(val) {
       this.currentPage = val;
     },
     handleAvatarSuccess(res, file) {
-      if(res.status == 1){
-        this.selectFoodsInfo.image_path = this.image_path;
-      }else{
+      if (res.status == 1) {
+        this.selectFoodsInfo.image_path = res.image_path;
+      } else {
         console.log("图片上传失败");
       }
     },
     beforeAvatarUpload(file) {
-      const isJPG = file.type === 'image/jpeg';
+      const isJPG = file.type === "image/jpeg";
       const isLt2M = file.size / 1024 / 1024 < 2;
 
       if (!isJPG) {
-        this.$message.error('上传头像图片只能是 JPG 格式!');
+        this.$message.error("上传头像图片只能是 JPG 格式!");
       }
       if (!isLt2M) {
-        this.$message.error('上传头像图片大小不能超过 2MB!');
+        this.$message.error("上传头像图片大小不能超过 2MB!");
       }
       return isJPG && isLt2M;
     },
     //添加规格
-    addspecs(){
-      this.$refs.specsValidateForm.validate((valid) => {
-        if(valid){
-          this.specsTable.push({...this.specsForm});
+    addspecs() {
+      this.$refs.specsValidateForm.validate(valid => {
+        if (valid) {
+          this.specsTable.push({ ...this.specsForm });
           this.specsFormVisible = false;
-        }else{
+        } else {
           this.specsFormVisible = true;
         }
-      })
-    }
+      });
+    },
+      //食品表单更新
+    async updateFoods() {
+      this.dialogFormVisible = false;
+      try {
+        const subData = {
+          category_id: this.selectMenu.value,
+          specs: this.specsTable
+        };
+        const postData = { ...this.selectFoodsInfo, ...subData };
+        const res = await updateFoods(postData);
+        if (res.status == 1) {
+          this.$message({
+            type: "success",
+            message: res.success
+          });
+          this.getFoods();
+        } else {
+          this.$message({
+            type: "error",
+            message: res.message
+          });
+        }
+      } catch (err) {
+        console.log("更新餐馆信息失败", err);
+      }
+    },
   }
-}
+};
 </script>
 <style lang="less">
-  .demo-table-expand {
-    font-size: 0;
-  }
-  .demo-table-expand label {
-    width: 90px;
-    color: #99a9bf;
-  }
-  .demo-table-expand .el-form-item {
-    margin-right: 0;
-    margin-bottom: 0;
-    width: 50%;
-  }
-   .img-uploader .el-upload {
-    border: 1px dashed #d9d9d9;
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .img-uploader .el-upload:hover {
-    border-color: #409EFF;
-  }
-  .img-uploader-icon {
-    font-size: 28px;
-    color: #8c939d;
-    width: 120px;
-    height: 120px;
-    line-height: 120px;
-    text-align: center;
-  }
-  .avatar {
-    width: 120px;
-    height: 120px;
-    display: block;
-  }
+.demo-table-expand {
+  font-size: 0;
+}
+.demo-table-expand label {
+  width: 90px;
+  color: #99a9bf;
+}
+.demo-table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  width: 50%;
+}
+.img-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.img-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.img-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 120px;
+  height: 120px;
+  line-height: 120px;
+  text-align: center;
+}
+.avatar {
+  width: 120px;
+  height: 120px;
+  display: block;
+}
 </style>

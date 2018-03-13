@@ -2,14 +2,17 @@
 
 此项目是[bailicangdu](https://github.com/bailicangdu/vue2-manage)作者的Elm后台管理系统项目，本人只是作为练习,在这里感谢原作者。
 
-## Build Setup
+# 未完成
+
+foodList.vue页面更新食品失败
+
 
 ## 项目运行
 ```
 # install dependencies
 npm install
 
-# serve with hot reload at localhost:8080
+# serve with hot reload at localhost:8002
 npm run dev
 
 # build for production with minification
