@@ -77,13 +77,13 @@
       <!--食物更新-->
       <el-dialog title="修改食物信息" :visible.sync="dialogFormVisible">
         <el-form :model="selectFoods">
-          <el-form-item label="食品名称" :label-width="formLabelWidth">
+          <el-form-item label="食品名称" prop="name" :label-width="formLabelWidth">
             <el-input v-model="selectFoods.name" auto-complete="off"></el-input>
           </el-form-item>
-          <el-form-item label="食品介绍" :label-width="formLabelWidth">
+          <el-form-item label="食品介绍" prop="description" :label-width="formLabelWidth">
             <el-input v-model="selectFoods.description" auto-complete="off"></el-input>
           </el-form-item>
-          <el-form-item label="食品分类" :label-width="formLabelWidth">
+          <el-form-item label="食品分类" prop="foodCategory" :label-width="formLabelWidth">
             <el-select v-model="selectIndex" :placeholder="selectMenu.label" @change="handleSelect">
               <el-option
                 v-for="item in menuOptions"
@@ -239,6 +239,15 @@ export default {
         console.log("数据读取失败", err);
       }
     },
+    expand(row) {
+      this.flag = !this.flag;
+      if (this.flag) {
+        this.getSelecteItemData(row);
+      } else {
+        const index = this.expendRow.indexOf(row.index);
+        this.expendRow.splice(index, 1);
+      }
+    },
     //获取食物列表
     async getFoods() {
       try {
@@ -268,14 +277,6 @@ export default {
         }
       } catch (err) {
         console.log("数据读取失败", err);
-      }
-    },
-    expand(row,expandedRows) {
-      if (this.flag) {
-        this.getSelecteItemData(row,expandedRows);
-      } else {
-        const index = this.expendRow.indexOf(row.index);
-        this.expendRow.splice(index, 1);
       }
     },
     handleEdit(index, row) {
@@ -311,8 +312,14 @@ export default {
       const restaurant = await getRestaurantDetail(row.restaurant_id);
       const category = await getMenuById(row.category_id);
 
-      this.selectFoods = {...row,...{restaurant_name: restaurant.name,restaurant_address: restaurant.address,category_name: category.name}};
-      
+      this.selectFoods = {
+        ...row,
+        ...{
+          restaurant_name: restaurant.name,
+          restaurant_address: restaurant.address,
+          category_name: category.name
+        }
+      };
       this.selectMenu = { label: category.name, value: row.category_id };
       this.tableData.splice(row.index, 1, { ...this.selectFoods });
       this.$nextTick(() => {
@@ -385,12 +392,13 @@ export default {
       this.dialogFormVisible = false;
       try {
         const subData = {
-          new_category_id: this.selectMenu.value,
+          // new_category_id: this.selectMenu.value,
           specs: this.specsTable
         };
-        console.log(subData);
+        const postData = { ...this.selectFoods};
+        console.log(postData);
         
-        const postData = { ...this.selectFoods, ...subData};
+        
         const res = await updateFoods(postData);
         if (res.status == 1) {
           this.$message({

@@ -239,6 +239,15 @@ export default {
         console.log("数据读取失败", err);
       }
     },
+    expand(row, expandedRows) {
+      this.flag = !this.flag;
+      if (this.flag) {
+        this.getSelecteItemData(row);
+      } else {
+        const index = this.expendRow.indexOf(row.index);
+        this.expendRow.splice(index, 1);
+      }
+    },
     //获取食物列表
     async getFoods() {
       try {
@@ -268,14 +277,6 @@ export default {
         }
       } catch (err) {
         console.log("数据读取失败", err);
-      }
-    },
-    expand(row,expandedRows) {
-      if (this.flag) {
-        this.getSelecteItemData(row,expandedRows);
-      } else {
-        const index = this.expendRow.indexOf(row.index);
-        this.expendRow.splice(index, 1);
       }
     },
     handleEdit(index, row) {
@@ -311,13 +312,19 @@ export default {
       const restaurant = await getRestaurantDetail(row.restaurant_id);
       const category = await getMenuById(row.category_id);
 
-      this.selectFoods = {...row,...{restaurant_name: restaurant.name,restaurant_address: restaurant.address,category_name: category.name}};
-      
+      this.selectFoods = {
+        ...row,
+        ...{
+          restaurant_name: restaurant.name,
+          restaurant_address: restaurant.address,
+          category_name: category.name
+        }
+      };
       this.selectMenu = { label: category.name, value: row.category_id };
       this.tableData.splice(row.index, 1, { ...this.selectFoods });
-      this.$nextTick(() => {
-        this.expendRow.push(row.index);
-      });
+      // this.$nextTick(() => {
+      //   this.expendRow.push(row.index);
+      // });
       if(type == 'edit' && this.restaurant_id != row.restaurant_id){
         this.getMenu();
       }
@@ -380,7 +387,7 @@ export default {
         }
       });
     },
-    //食品更新
+      //食品表单更新
     async updateFoods() {
       this.dialogFormVisible = false;
       try {
@@ -388,9 +395,7 @@ export default {
           new_category_id: this.selectMenu.value,
           specs: this.specsTable
         };
-        console.log(subData);
-        
-        const postData = { ...this.selectFoods, ...subData};
+        const postData = { ...this.selectFoods, ...subData };
         const res = await updateFoods(postData);
         if (res.status == 1) {
           this.$message({

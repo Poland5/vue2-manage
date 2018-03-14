@@ -210,19 +210,19 @@ export default {
     this.initData();
   },
   computed: {
-    specsTable: function() {
-      let specs = [];
-      if (this.selectFoods.specfoods) {
-        this.selectFoods.specfoods.forEach(item => {
-          specs.push({
-            specs: item.specs_name,
-            packing_fee: item.packing_fee,
-            price: item.price
-          });
-        });
-      }
-      return specs;
-    }
+    // specsTable: function() {
+    //   let specs = [];
+    //   if (this.selectFoods.specfoods) {
+    //     this.selectFoods.specfoods.forEach(item => {
+    //       specs.push({
+    //         specs: item.specs_name,
+    //         packing_fee: item.packing_fee,
+    //         price: item.price
+    //       });
+    //     });
+    //   }
+    //   return specs;
+    // }
   },
   methods: {
     //获取食物数量
@@ -237,6 +237,15 @@ export default {
         this.getFoods();
       } catch (err) {
         console.log("数据读取失败", err);
+      }
+    },
+    expand(row) {
+      this.flag = !this.flag;
+      if (this.flag) {
+        this.getSelecteItemData(row);
+      } else {
+        const index = this.expendRow.indexOf(row.index);
+        this.expendRow.splice(index, 1);
       }
     },
     //获取食物列表
@@ -268,14 +277,6 @@ export default {
         }
       } catch (err) {
         console.log("数据读取失败", err);
-      }
-    },
-    expand(row,expandedRows) {
-      if (this.flag) {
-        this.getSelecteItemData(row,expandedRows);
-      } else {
-        const index = this.expendRow.indexOf(row.index);
-        this.expendRow.splice(index, 1);
       }
     },
     handleEdit(index, row) {
@@ -311,8 +312,14 @@ export default {
       const restaurant = await getRestaurantDetail(row.restaurant_id);
       const category = await getMenuById(row.category_id);
 
-      this.selectFoods = {...row,...{restaurant_name: restaurant.name,restaurant_address: restaurant.address,category_name: category.name}};
-      
+      this.selectFoods = {
+        ...row,
+        ...{
+          restaurant_name: restaurant.name,
+          restaurant_address: restaurant.address,
+          category_name: category.name
+        }
+      };
       this.selectMenu = { label: category.name, value: row.category_id };
       this.tableData.splice(row.index, 1, { ...this.selectFoods });
       this.$nextTick(() => {
@@ -385,12 +392,13 @@ export default {
       this.dialogFormVisible = false;
       try {
         const subData = {
-          new_category_id: this.selectMenu.value,
+          // new_category_id: this.selectMenu.value,
           specs: this.specsTable
         };
-        console.log(subData);
-        
         const postData = { ...this.selectFoods, ...subData};
+        console.log(postData);
+        
+        
         const res = await updateFoods(postData);
         if (res.status == 1) {
           this.$message({

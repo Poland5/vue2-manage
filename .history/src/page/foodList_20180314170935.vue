@@ -239,6 +239,15 @@ export default {
         console.log("数据读取失败", err);
       }
     },
+    expand(row) {
+      this.flag = !this.flag;
+      if (this.flag) {
+        this.getSelecteItemData(row);
+      } else {
+        const index = this.expendRow.indexOf(row.index);
+        this.expendRow.splice(index, 1);
+      }
+    },
     //获取食物列表
     async getFoods() {
       try {
@@ -268,14 +277,6 @@ export default {
         }
       } catch (err) {
         console.log("数据读取失败", err);
-      }
-    },
-    expand(row,expandedRows) {
-      if (this.flag) {
-        this.getSelecteItemData(row,expandedRows);
-      } else {
-        const index = this.expendRow.indexOf(row.index);
-        this.expendRow.splice(index, 1);
       }
     },
     handleEdit(index, row) {
@@ -386,10 +387,8 @@ export default {
       try {
         const subData = {
           new_category_id: this.selectMenu.value,
-          specs: this.specsTable
+          // specs: this.specsTable
         };
-        console.log(subData);
-        
         const postData = { ...this.selectFoods, ...subData};
         const res = await updateFoods(postData);
         if (res.status == 1) {
