@@ -44,7 +44,7 @@ const routes = [
     },{
       path: '/orderList',
       component: orderList,
-      meta: ["数据管理","订单列表"],
+      meta: ["添加数据","添加商品"],
     }]
   }
 ]

@@ -1,0 +1,17 @@
+<template>
+  <div class="fillcontainer">
+    <head-top></head-top>
+  </div>
+</template>
+<script>
+import headTop from '@/components/headTop'
+export default {
+  components: {
+    headTop
+  }
+}
+</script>
+<style lang="less" scoped>
+
+</style>
+

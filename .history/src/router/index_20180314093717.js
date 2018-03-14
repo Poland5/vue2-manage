@@ -41,10 +41,6 @@ const routes = [
       path: '/addGoods',
       component: addGoods,
       meta: ["添加数据","添加商品"],
-    },{
-      path: '/orderList',
-      component: orderList,
-      meta: ["数据管理","订单列表"],
     }]
   }
 ]

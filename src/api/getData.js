@@ -133,3 +133,13 @@ export const addFoods = data => fetch('/shopping/addfood', data, 'POST');
  * 删除食品
  */
 export const deleteFoods = food_id => fetch('/shopping/v2/food/'+ food_id, {}, 'DELETE');
+
+/**
+ * 获取订单列表
+ */
+export const getOrderList = data => fetch('/bos/orders', data);
+
+/**
+ * 获取收货地址
+ */
+export const getShoppingAddress = user_id => fetch('/v1/users/'+ user_id + '/addresses');
