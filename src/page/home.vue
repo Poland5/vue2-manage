@@ -83,7 +83,7 @@ export default {
   },
   methods: {
     async initData() {
-      const today = dtime().format("YYYY-MM-DD");
+      const today = dtime().format("YYYY-MM-DD");//把日期格式化为（今日日期:年-月-日）
       Promise.all([userCount(today), orderCount(today), adminCount(today), getUserCount(today), getOrderCount(), getAdminCount()])
         .then(res => {
           this.userCount = res[0].count;

@@ -20,11 +20,10 @@ const actions = {
   async getAdminData({commit}){
     try{
       const res = await getAdminInfo();
-      
       if(res.status == 1){
         commit('saveAdminInfo',res.data);
       }else{
-        throw new Error(error)
+        throw new Error("请求管理员信息失败")
       }
     }catch(error){
       console.log("您尚未登陆");

@@ -6,7 +6,7 @@
     </el-breadcrumb>
     <el-dropdown @command="handleCommand">
       <img :src="baseImgPath + adminInfo.avatar" class="avatar">
-      <el-dropdown-menu slot="dropdown">
+      <el-dropdown-menu slot="dropdown" divided>
         <el-dropdown-item command="home">首页</el-dropdown-item>
         <el-dropdown-item command="signout">退出</el-dropdown-item>
       </el-dropdown-menu>
@@ -16,7 +16,7 @@
 
 <script>
 import {baseImgPath} from '@/config/env.js'
-import {mapState} from 'vuex'
+import {mapState,mapActions} from 'vuex'
 import {signout} from '@/api/getData'
 export default {
   name: 'headTop',
@@ -25,12 +25,20 @@ export default {
       baseImgPath,
     }
   },
+  created () {
+    if(!this.adminInfo.id){
+      this.getAdminData();
+    }
+  },
   computed: {
     ...mapState([
       'adminInfo'
     ])
   },
   methods: {
+    ...mapActions([
+      'getAdminData'
+    ]),
     async handleCommand(command){
       if(command == 'home'){
         this.$router.push('/manage');
