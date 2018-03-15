@@ -32,6 +32,8 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 		}
 
 		if (type == 'POST') {
+			console.log(data);
+			
 			Object.defineProperty(requestConfig, 'body', {
 				value: JSON.stringify(data)
 			})
@@ -55,7 +57,7 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 
 			let sendData = '';
 			if (type == 'POST') {
-				sendData = JSON.stringify(data);
+				sendData = JSON.stringify(data);				
 			}
 
 			requestObj.open(type, url, true);

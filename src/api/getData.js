@@ -143,3 +143,8 @@ export const getOrderList = data => fetch('/bos/orders', data);
  * 获取收货地址
  */
 export const getShoppingAddress = user_id => fetch('/v1/users/'+ user_id + '/addresses');
+
+/**
+ * 获取管理员列表
+ */
+export const getAdminList = data => fetch('/admin/all', data);

@@ -271,8 +271,9 @@ export default {
       }
     },
     expand(row,expandedRows) {
+      this.flag = !this.flag;
       if (this.flag) {
-        this.getSelecteItemData(row,expandedRows);
+        this.getSelecteItemData(row);
       } else {
         const index = this.expendRow.indexOf(row.index);
         this.expendRow.splice(index, 1);
@@ -281,31 +282,6 @@ export default {
     handleEdit(index, row) {
       this.getSelecteItemData(row, "edit");
       this.dialogFormVisible = true;
-    },
-    specDelete(index) {
-      this.specsTable.splice(index, 1);
-    },
-    handleSelect(index) {
-      this.selectIndex = index;
-      this.selectMenu = this.menuOptions[index];
-    },
-    async getMenu() {
-      this.menuOptions = [];
-      try {
-        const menu = await getMenu({
-          restaurant_id: this.selectFoods.restaurant_id,
-          allMenu: true
-        });
-        menu.forEach((item, index) => {
-          this.menuOptions.push({
-            value: item.id,
-            lable: item.name,
-            index
-          });
-        });
-      } catch (err) {
-        console.log("获取食品种类失败", err);
-      }
     },
     async getSelecteItemData(row, type) {
       const restaurant = await getRestaurantDetail(row.restaurant_id);
@@ -322,6 +298,30 @@ export default {
         this.getMenu();
       }
     },
+    specDelete(index) {
+      this.specsTable.splice(index, 1);
+    },
+    handleSelect(index) {
+      this.selectIndex = index;
+      this.selectMenu = this.menuOptions[index];
+    },
+    async getMenu() {
+      this.menuOptions = [];
+      try {
+        const menu = await getMenu({restaurant_id: this.selectFoods.restaurant_id});
+        menu.forEach((item, index) => {
+          this.menuOptions.push({
+            value: item.id,
+            lable: item.name,
+            index: index
+          });
+          
+        });
+      } catch (err) {
+        console.log("获取食品种类失败", err);
+      }
+    },
+  
     //删除食物列表
     async handleDelete(index, row) {
       const res = await deleteFoods(row.item_id);
@@ -385,12 +385,11 @@ export default {
       this.dialogFormVisible = false;
       try {
         const subData = {
-          new_category_id: this.selectMenu.value,
+          category_id: this.selectMenu.value,
           specs: this.specsTable
         };
-        console.log(subData);
-        
         const postData = { ...this.selectFoods, ...subData};
+        
         const res = await updateFoods(postData);
         if (res.status == 1) {
           this.$message({
