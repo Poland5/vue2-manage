@@ -9,9 +9,10 @@ const home = r => require.ensure([], () => r(require('@/page/home')), 'home');
 const userList = r => require.ensure([], () => r(require('@/page/userList')), 'userList');
 const foodList = r => require.ensure([], () => r(require('@/page/foodList')), 'foodList');
 const shopList = r => require.ensure([], () => r(require('@/page/shopList')), 'shopList');
-const addGoods = r => require.ensure([], () => r(require('@/page/addGoods')), 'addGoods');
 const orderList = r => require.ensure([], () => r(require('@/page/orderList')), 'orderList');
 const adminList = r => require.ensure([], () => r(require('@/page/adminList')), 'adminList');
+const addGoods = r => require.ensure([], () => r(require('@/page/addGoods')), 'addGoods');
+const addShops = r => require.ensure([], () => r(require('@/page/addShops')), 'addShops');
 
 const routes = [
   {
@@ -50,6 +51,10 @@ const routes = [
       path: '/adminList',
       component: adminList,
       meta: ["数据管理","管理员列表"],
+    },{
+      path: '/addShops',
+      component: addShops,
+      meta: ["添加数据","添加商铺"],
     }]
   }
 ]
