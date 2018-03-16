@@ -2,7 +2,7 @@
 
 此项目是[bailicangdu](https://github.com/bailicangdu/vue2-manage)作者的Elm后台管理系统项目，本人只是作为练习,在这里感谢原作者。
 
-##技术栈
+## 技术栈
 vue2 + vuex + vue-router + webpack + ES6 + less + element-ui
 
 ## 功能列表
