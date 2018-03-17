@@ -46,6 +46,11 @@ export const getUserCount = () => fetch('/v1/users/count');
 export const getAdminCount = () => fetch('/admin/count');
 
 /**
+ * 获取商铺数量
+ */
+export const getShopCount = () => fetch('/shopping/restaurants/count');
+
+/**
  * 获取用户列表
  */
 export const getUserList = data => fetch('/v1/users/list', data)
@@ -145,6 +150,20 @@ export const getOrderList = data => fetch('/bos/orders', data);
 export const getShoppingAddress = user_id => fetch('/v1/users/'+ user_id + '/addresses');
 
 /**
+ * 添加店铺
+ */
+export const addShop = data => fetch('/shopping/addshop', data, 'POST');
+
+/**
  * 获取管理员列表
  */
 export const getAdminList = data => fetch('/admin/all', data);
+
+/**
+ * 搜索地址
+ */
+export const searchPlacs = (city_id, queryString) => fetch('/v1/pois', {
+  city_id:city_id,
+  keyword:queryString,
+  type:'search'
+});

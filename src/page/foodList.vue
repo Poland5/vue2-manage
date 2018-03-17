@@ -137,7 +137,6 @@
           <el-button type="primary" @click="updateFoods">确 定</el-button>
         </span>
       </el-dialog>
-
       <el-dialog title="添加规格" :visible.sync="specsFormVisible">
         <el-form :model="specsForm" :rules="specsRules" ref="specsValidateForm">
           <el-form-item label="规格" prop="specs" :label-width="formLabelWidth">

@@ -64,6 +64,16 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+        background
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page.sync="currentPage"
+        :page-size="20"
+        layout="total, prev, pager, next"
+        :total="count"
+        style="margin:10px">
+      </el-pagination>
       <el-dialog title="修改店铺信息" :visible.sync="dialogFormVisible">
         <el-form :model="shopDialogForm">
           <el-form-item label="店铺名称" :label-width="formLabelWidth">
@@ -113,7 +123,7 @@
   </div>
 </template>
 <script>
-import {guessCity, getShopList, deleteRestaurant, getCategory, updateShop, queryCity} from '@/api/getData'
+import {guessCity, getShopList, deleteRestaurant, getCategory, updateShop, queryCity, getShopCount} from '@/api/getData'
 import {baseUrl,baseImgPath} from '@/config/env'
 import headTop from '@/components/headTop'
 export default {
@@ -126,9 +136,11 @@ export default {
       formLabelWidth:'120px',
       limit:20,
       offset:0,
+      count:0,
       city:{},
       dialogFormVisible:false, 
       address:{},
+      currentPage:1,
       baseUrl,
       baseImgPath
     }
@@ -146,6 +158,8 @@ export default {
     },
     async shopList(){
       this.tableData = [];
+      const getCount = await getShopCount();
+      this.count = getCount.count;
       const shopList = await getShopList({limit:this.limit,offset:this.offset,latitude:this.city.latitude,longitude:this.city.longitude});
       shopList.forEach(item => {
         let tableData = {};
@@ -224,11 +238,18 @@ export default {
         }
       }catch(err){
         this.$message({
-          message:err.message,
+          message:"删除失败",
           type:"error"
         })
         console.log("删除失败");
       }
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+    },
+    handleCurrentChange(val) {
+      this.offset = this.limit * (val - 1);
+      this.shopList();
     },
     addressSelect(item){
       const {address,longitude,latitude} = item;

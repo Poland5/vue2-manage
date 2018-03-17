@@ -3,16 +3,22 @@
     <head-top></head-top>
     <el-row style="margin-top:20px">
       <el-col :span="14" :offset="4">
-        <el-form :model="formData" :rules="formRules" ref="formData" label-width="100px">
+        <el-form :model="formData" :rules="formRules" ref="formRules" label-width="100px">
           <el-form-item label="商铺名称" prop="name" >
             <el-input v-model="formData.name"></el-input>
           </el-form-item>
           <el-form-item label="详细地址" prop="address" >
-            <el-input v-model="formData.address"></el-input>
+            <el-autocomplete
+             style="width:100%"
+              v-model="formData.address"
+              :fetch-suggestions="querySearchAsync"
+              placeholder="请输入内容"
+              @select="handleSelectAddress">
+            </el-autocomplete>
             <span>当前城市:{{city.name}}</span>
           </el-form-item>
           <el-form-item label="联系电话" prop="phone" >
-            <el-input v-model="formData.phone"></el-input>
+            <el-input v-model.number="formData.phone"></el-input>
           </el-form-item>
           <el-form-item label="商铺简介" prop="description" >
             <el-input v-model="formData.description"></el-input>
@@ -24,7 +30,8 @@
             <el-cascader
               :options="categoryOptions"
               v-model="selectCategoryOptions"
-              @change="handleChange">
+              @change="handleChange"
+              change-on-select>
             </el-cascader>
           </el-form-item>
           <el-form-item label="店铺特点">
@@ -66,7 +73,7 @@
               :picker-options="{
                 start:'8:00',
                 step:'00:15',
-                end:'12:00'
+                end:'23:30'
               }">
             </el-time-select>
             <el-time-select
@@ -75,7 +82,8 @@
               :picker-options="{
                 start:'8:00',
                 step:'00:15',
-                end:'12:00'
+                end:'23:30',
+                minTime:formData.startTime
               }">
             </el-time-select>
           </el-form-item>
@@ -113,7 +121,7 @@
             </el-upload>
           </el-form-item>
           <el-form-item label="优惠活动">
-            <el-select v-model="activityOptions" placeholder="请选择">
+            <el-select v-model="activityOptions" :placeholder="activityOptions" @change="handleActivityChange">
               <el-option 
                 v-for="item in selectActivityOptions"
                 :key="item.value"
@@ -121,7 +129,39 @@
                 :value="item.value">
               </el-option>
             </el-select>
-          </el-form-item> 
+          </el-form-item>
+          <el-form-item>
+            <el-table 
+              border
+              :data="activityTableData"
+              style="width:100%">
+              <el-table-column label="活动标题" prop="icon_name" align="center"></el-table-column>
+              <el-table-column label="活动名称" prop="name" align="center"></el-table-column>
+              <el-table-column label="活动详情" prop="description" align="center"></el-table-column>
+              <el-table-column label="操作" align="center">
+                <template slot-scope="scope">
+                  <el-button
+                    size="mini"
+                    type="danger"
+                    @click="handleDelete(scope.$index,scope.row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-form-item>
+          <el-form-item style="text-align:center">
+            <el-button type="primary" @click="addShopes('formRules')">立即创建</el-button>
+          </el-form-item>
+          <!-- <el-dialog title="提示" :visible.sync="dialogFormVisible">
+            <el-form :model="dialogForm">
+                <el-form-item label="请输入活动详情">
+                  <el-input v-model="dialogForm.description" auto-complete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+              <el-button @click="dialogFormVisible = false">取 消</el-button>
+              <el-button type="primary" @click="submitActivityForm">确 定</el-button>
+            </div>
+          </el-dialog> -->
         </el-form>
       </el-col>
     </el-row>
@@ -130,18 +170,20 @@
 <script>
 import headTop from '@/components/headTop'
 import {baseUrl, baseImgPath} from '@/config/env'
-import {guessCity,getCategory} from '@/api/getData'
+import {guessCity,getCategory,searchPlacs, addShop} from '@/api/getData'
 export default {
   data () {
     return {
-      city:'',
+      city:{},
       formData:{
         name:'',
         address:'',
         phone:'',
+        longitude:'',
+        latitude:'',
         description:'',
         promotion_info:'',
-        foodsCategory:[],
+        category:'',
         pinpai:true,
         delivery_mode:true,
         new:true,
@@ -156,9 +198,10 @@ export default {
         business_license_image:'',
         catering_service_license_image:''
       },
+      activityTableData:[],
       categoryOptions:[],
       selectCategoryOptions:['异国料理','日韩料理'],
-      activityOptions:[],
+      activityOptions:'满减优惠',
       selectActivityOptions:[{
         value:'满减优惠',
         label:'满减优惠'
@@ -169,8 +212,8 @@ export default {
         value:'新用户立减',
         label:'新用户立减'
       },{
-        value:'进店领卷',
-        label:'进店领卷'
+        value:'进店领券',
+        label:'进店领券'
       },],
       formRules:{
         name:[
@@ -180,10 +223,13 @@ export default {
           {required: true, message:'请输入详细地址'}
         ],
         phone:[
-          {required: true, message:'请输入手机号码'},
-          {type:'number', message:'输入的必须是数字'}
+          { required: true, message:'请输入手机号码'},
+          { type: 'number', message: '手机号码必须为数字'}
         ]
       },
+      dialogForm:{},
+      dialogFormVisible:false,
+      allAddress:'',
       baseUrl,
       baseImgPath,
     }
@@ -191,14 +237,15 @@ export default {
   components: {
     headTop
   },
-  mounted () {
+  created () {
     this.initData();
   },
   methods: {
     async initData(){
       this.city = await guessCity();
-      const category = await getCategory();
-      category.forEach((item, index) => {
+      this.formData.category = this.selectCategoryOptions.join('/');
+      const allCategory = await getCategory();
+      allCategory.forEach((item, index) => {
         if(item.sub_categories.length){
           const addnew = {
             value: item.name,
@@ -220,13 +267,97 @@ export default {
       })
     },
     handleChange(value){
-      console.log(value);
+      if(value){
+        this.formData.category = value.join('/');
+      }
     },
     deliveryChange(){
 
     },
     minimumOrderChange(){
 
+    },
+    handleActivityChange(){
+      this.$prompt('请输入活动详情','提示',{
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }).then(({value}) => {
+         if(value == null){
+           this.$message({
+             type:'info',
+             message:'请输入活动详情'
+           })
+         }
+        let newObj = {};
+        switch(this.activityOptions)
+        {
+          case '满减优惠':
+          newObj = {
+            icon_name:'减',
+            name:'满减优惠',
+            description: value
+          }
+          break;
+          case '优惠大酬宾':
+          newObj = {
+            icon_name:'减',
+            name:'优惠大酬宾',
+            description: value
+          }
+          break;
+          case '新用户立减':
+          newObj = {
+            icon_name:'减',
+            name:'新用户立减',
+            description: value
+          }
+          break;
+          case '进店领券':
+          newObj = {
+            icon_name:'减',
+            name:'进店领券',
+            description: value
+          }
+          break;
+        }
+        this.activityTableData.push(newObj);
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '取消输入'
+        })
+      })
+      // this.activityData.name = val;
+      
+    },
+    // submitActivityForm(){
+    //   this.activityData.description = this.dialogForm.description;
+    //   this.activityTableData.push(this.activityData);
+    //   this.dialogFormVisible = false;
+    // },
+    handleDelete(index,row){
+      this.activityTableData.splice(index,1);
+    },
+    async querySearchAsync(queryString,cb){
+      if(queryString){
+        try{
+          const cityList = await searchPlacs(this.city.id, queryString);
+          if(cityList instanceof Array){
+            cityList.map(item => {
+              item.value = item.address;
+              return item
+            })
+          }
+          cb(cityList);
+        }catch(err){
+          console.log(err);
+        }
+      }
+    },
+    handleSelectAddress(item){
+      this.formData.longitude = item.longitude;
+      this.formData.latitude = item.latitude;
+      this.formData.address = item.value;
     },
     handleShopAvatarSuccess(res,file){
       if(res.status == 1){
@@ -269,6 +400,44 @@ export default {
         this.$message.error('上传头像图片大小不能超过 2MB!');
       }
       return isRightType && isLt2M;
+    },
+    addShopes(formRules){
+      //获取需要添加的商铺数据
+      const activities = this.activityTableData;
+      const shopes = {activities, ...this.formData}
+
+      this.$refs[formRules].validate(async (valid) => {
+        if(valid){
+          if(this.formData.image_path == ''){
+            this.$message({
+              type: 'error',
+              message: '请上传店铺头像'
+            });
+            return;
+          }
+          try{
+            const res = await addShop(shopes);
+            if(res.status == 1){
+              this.$message({
+                type:'success',
+                message: '添加餐馆成功'
+              })
+            }else{
+              this.$message({
+                type:'error',
+                message: res.message
+              })
+            }
+          }catch(err){
+            console.log("数据获取失败");
+          }
+        }else{
+          this.$notify.error({
+            title:'错误',
+            message:'检查是否输入有误'
+          })
+        }
+      })
     }
   }
 }
@@ -297,5 +466,8 @@ export default {
     width: 120px;
     height: 120px;
     display: block;
+  }
+  .header-row{
+    background-color:#409EFF;
   }
 </style>
