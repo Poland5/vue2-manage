@@ -167,3 +167,8 @@ export const searchPlacs = (city_id, queryString) => fetch('/v1/pois', {
   keyword:queryString,
   type:'search'
 });
+
+/**
+ * 获取用户分布信息
+ */
+export const getUserCityCount = () => fetch('/v1/user/city/count');
