@@ -30,7 +30,6 @@
             <el-cascader
               :options="categoryOptions"
               v-model="selectCategoryOptions"
-              @change="handleChange"
               change-on-select>
             </el-cascader>
           </el-form-item>
@@ -61,10 +60,10 @@
             </el-switch>
           </el-form-item>
           <el-form-item label="配送费">
-            <el-input-number v-model="formData.float_delivery_fee" @change="deliveryChange" :min="5" :max="1000"></el-input-number>
+            <el-input-number v-model="formData.float_delivery_fee" :min="5" :max="1000"></el-input-number>
           </el-form-item>
           <el-form-item label="起送价">
-            <el-input-number v-model="formData.float_minimum_order_amount" @change="minimumOrderChange" :min="20" :max="1000"></el-input-number>
+            <el-input-number v-model="formData.float_minimum_order_amount" :min="20" :max="1000"></el-input-number>
           </el-form-item>
           <el-form-item label="营业时间">
             <el-time-select
@@ -149,19 +148,8 @@
             </el-table>
           </el-form-item>
           <el-form-item style="text-align:center">
-            <el-button type="primary" @click="addShopes('formRules')">立即创建</el-button>
+            <el-button type="primary" @click="submitForm('formRules')">立即创建</el-button>
           </el-form-item>
-          <!-- <el-dialog title="提示" :visible.sync="dialogFormVisible">
-            <el-form :model="dialogForm">
-                <el-form-item label="请输入活动详情">
-                  <el-input v-model="dialogForm.description" auto-complete="off"></el-input>
-                </el-form-item>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-              <el-button @click="dialogFormVisible = false">取 消</el-button>
-              <el-button type="primary" @click="submitActivityForm">确 定</el-button>
-            </div>
-          </el-dialog> -->
         </el-form>
       </el-col>
     </el-row>
@@ -198,7 +186,11 @@ export default {
         business_license_image:'',
         catering_service_license_image:''
       },
-      activityTableData:[],
+      activityTableData:[{
+        icon_name:'减',
+        name:'满减优惠',
+        description:'满50减5,满80减8'
+      }],
       categoryOptions:[],
       selectCategoryOptions:['异国料理','日韩料理'],
       activityOptions:'满减优惠',
@@ -243,7 +235,6 @@ export default {
   methods: {
     async initData(){
       this.city = await guessCity();
-      this.formData.category = this.selectCategoryOptions.join('/');
       const allCategory = await getCategory();
       allCategory.forEach((item, index) => {
         if(item.sub_categories.length){
@@ -265,17 +256,6 @@ export default {
           this.categoryOptions.push(addnew);
         }
       })
-    },
-    handleChange(value){
-      if(value){
-        this.formData.category = value.join('/');
-      }
-    },
-    deliveryChange(){
-
-    },
-    minimumOrderChange(){
-
     },
     handleActivityChange(){
       this.$prompt('请输入活动详情','提示',{
@@ -300,21 +280,21 @@ export default {
           break;
           case '优惠大酬宾':
           newObj = {
-            icon_name:'减',
+            icon_name:'特',
             name:'优惠大酬宾',
             description: value
           }
           break;
           case '新用户立减':
           newObj = {
-            icon_name:'减',
+            icon_name:'新',
             name:'新用户立减',
             description: value
           }
           break;
           case '进店领券':
           newObj = {
-            icon_name:'减',
+            icon_name:'领',
             name:'进店领券',
             description: value
           }
@@ -327,14 +307,7 @@ export default {
           message: '取消输入'
         })
       })
-      // this.activityData.name = val;
-      
     },
-    // submitActivityForm(){
-    //   this.activityData.description = this.dialogForm.description;
-    //   this.activityTableData.push(this.activityData);
-    //   this.dialogFormVisible = false;
-    // },
     handleDelete(index,row){
       this.activityTableData.splice(index,1);
     },
@@ -401,27 +374,49 @@ export default {
       }
       return isRightType && isLt2M;
     },
-    addShopes(formRules){
+    submitForm(formParam){
       //获取需要添加的商铺数据
-      const activities = this.activityTableData;
-      const shopes = {activities, ...this.formData}
-
-      this.$refs[formRules].validate(async (valid) => {
+      this.$refs[formParam].validate(async (valid) => {
         if(valid){
-          if(this.formData.image_path == ''){
-            this.$message({
-              type: 'error',
-              message: '请上传店铺头像'
-            });
-            return;
-          }
+          Object.assign(this.formData,{activities:this.activityTableData},{
+            category:this.selectCategoryOptions.join('/')
+          })
           try{
-            const res = await addShop(shopes);
+            const res = await addShop(this.formData);
+            this.$message({
+              type:'success',
+              message: '添加餐馆成功'
+            })
             if(res.status == 1){
-              this.$message({
-                type:'success',
-                message: '添加餐馆成功'
-              })
+              this.formData = {
+                name:'',
+                address:'',
+                phone:'',
+                longitude:'',
+                latitude:'',
+                description:'',
+                promotion_info:'',
+                category:'',
+                pinpai:true,
+                delivery_mode:true,
+                new:true,
+                bao:true,
+                zhun:true,
+                pao:true,
+                float_delivery_fee:5,
+                float_minimum_order_amount:20,
+                startTime:'',
+                endTime:'',
+                image_path:'',
+                business_license_image:'',
+                catering_service_license_image:''
+              },
+              this.activityTableData = [{
+                icon_name:'减',
+                name:'满减优惠',
+                description:'满50减5,满80减8'
+              }],
+              this.selectCategoryOptions = ['异国料理','日韩料理'];
             }else{
               this.$message({
                 type:'error',
