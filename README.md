@@ -19,7 +19,7 @@ vue2 + vuex + vue-router + webpack + ES6 + less + element-ui
 - [x] 用户公布 -- 完成
 - [x] 文本编辑 -- 完成
 - [x] 管理员设置 -- 完成
-- [x] 说明 -- 未开始
+- [x] 说明 -- 完成
 
 ## 项目运行
 ```
