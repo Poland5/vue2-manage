@@ -15,6 +15,7 @@ const addGoods = r => require.ensure([], () => r(require('@/page/addGoods')), 'a
 const addShops = r => require.ensure([], () => r(require('@/page/addShops')), 'addShops');
 const visitor = r => require.ensure([], () => r(require('@/page/visitor')), 'visitor');
 const vueEdit = r => require.ensure([], () => r(require('@/page/vueEdit')), 'vueEdit');
+const adminSet = r => require.ensure([], () => r(require('@/page/adminSet')), 'adminSet');
 
 const routes = [
   {
@@ -65,6 +66,10 @@ const routes = [
       path: '/vueEdit',
       component: vueEdit,
       meta: ["编辑","文本编辑"]
+    },{
+      path: '/adminSet',
+      component: adminSet,
+      meta: ["设置","管理员设置"]
     }]
   }
 ]
