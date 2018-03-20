@@ -32,8 +32,6 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 		}
 
 		if (type == 'POST') {
-			console.log(data);
-			
 			Object.defineProperty(requestConfig, 'body', {
 				value: JSON.stringify(data)
 			})

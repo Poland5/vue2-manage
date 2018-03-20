@@ -79,10 +79,10 @@
             </el-form-item>
             <el-row v-if="specs == 'one'">
               <el-form-item label="包装费">
-                <el-input-number v-model="foodForm.packing_fee" :min="0" :max="100"></el-input-number>
+                <el-input-number v-model="foodForm.specs[0].packing_fee" :min="0" :max="100"></el-input-number>
               </el-form-item>
               <el-form-item label="价格">
-                <el-input-number v-model="foodForm.price" :min="0" :max="10000"></el-input-number>
+                <el-input-number v-model="foodForm.specs[0].price" :min="0" :max="10000"></el-input-number>
               </el-form-item>
             </el-row>
             <el-row v-else style="text-align:center">
@@ -146,11 +146,15 @@ export default {
       },
       foodForm: {
         name: "",
-        activity: "",
+        activity: '',
         description: "",
         image_path: "",
         attributes: [],
-        specs: []
+        specs: [{
+          specs: '默认',
+          packing_fee: 0,
+          price: 20
+        }]
       },
       specsForm: {
         specs: "",
@@ -187,7 +191,7 @@ export default {
   computed: {
     selectValue: function(val) {
       return (
-        this.categoryForm.categoryList[this.categoryForm.categorySelect] || {}
+        this.categoryForm.categoryList[1] || {}
       );
     }
   },
@@ -207,7 +211,7 @@ export default {
     this.initData();
   },
   methods: {
-    async initData() {
+    async initData() {      
       try {
         const result = await getCategoryList(this.restaurant_id);
         if (result.status == 1) {
@@ -215,7 +219,6 @@ export default {
             item.value = index;
           });
           this.categoryForm.categoryList = result.category_list;
-          console.log(this.categoryForm.categoryList);
         } else {
           console.log(result);
         }
@@ -236,11 +239,11 @@ export default {
             if (result.status == 1) {
               this.initData();
               this.categoryForm.name = "";
-              (this.categoryForm.description = ""),
-                this.$message({
-                  type: "success",
-                  message: "添加成功"
-                });
+              this.categoryForm.description = "",
+              this.$message({
+                type: "success",
+                message: "添加成功"
+              });
             } else {
               this.$message({
                 type: "error",
@@ -274,9 +277,21 @@ export default {
             const result = await addFoods(params);
             if (result.status == 1) {
               this.$message({
-                type: "success",
+                type: 'success',
                 message: result.success
               });
+              this.foodForm={
+                name: '',
+                activity: '',
+                description: '',
+                image_path: '',
+                attributes: [],
+                specs: [{
+                  specs: '默认',
+                  packing_fee: 0,
+                  price: 20
+                }]
+              }
             } else {
               this.$message({
                 type: "error",

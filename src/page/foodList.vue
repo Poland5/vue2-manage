@@ -105,33 +105,33 @@
             </el-upload>
           </el-form-item>
         </el-form>
-          <el-row style="text-align:center">
-            <el-table
-              :data="specsTable"
-              style="width: 100%; border:1px solid #eee; border-bottom:none">
-              <el-table-column
-                prop="specs"
-                label="规格">
-              </el-table-column>
-              <el-table-column
-                prop="packing_fee"
-                label="包装费">
-              </el-table-column>
-              <el-table-column
-                prop="price"
-                label="价格">
-              </el-table-column>
-              <el-table-column label="操作">
-                <template slot-scope="scope">
-                  <el-button
-                    size="mini"
-                    type="danger"
-                    @click="specDelete(scope.$index)">删除</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <el-button type="primary" style="margin-top:10px" @click="specsFormVisible = true">添加规格</el-button>
-          </el-row>
+        <el-row style="text-align:center">
+          <el-table
+            :data="specsTable"
+            style="width: 100%; border:1px solid #eee; border-bottom:none">
+            <el-table-column
+              prop="specs"
+              label="规格">
+            </el-table-column>
+            <el-table-column
+              prop="packing_fee"
+              label="包装费">
+            </el-table-column>
+            <el-table-column
+              prop="price"
+              label="价格">
+            </el-table-column>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <el-button
+                  size="mini"
+                  type="danger"
+                  @click="specDelete(scope.$index)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button type="primary" style="margin-top:10px" @click="specsFormVisible = true">添加规格</el-button>
+        </el-row>
         <span slot="footer">
           <el-button @click="dialogFormVisible = false">取 消</el-button>
           <el-button type="primary" @click="updateFoods">确 定</el-button>
@@ -159,15 +159,7 @@
 </template>
 <script>
 import headTop from "@/components/headTop";
-import {
-  getFoodCount,
-  getFoodList,
-  getRestaurantDetail,
-  getMenu,
-  getMenuById,
-  updateFoods,
-  deleteFoods
-} from "@/api/getData";
+import {getFoodCount,getFoodList,getRestaurantDetail,getMenu,getMenuById,updateFoods,deleteFoods} from "@/api/getData";
 import { baseImgPath, baseUrl } from "@/config/env";
 export default {
   data() {
@@ -269,34 +261,6 @@ export default {
         console.log("数据读取失败", err);
       }
     },
-    expand(row,expandedRows) {
-      this.flag = !this.flag;
-      if (this.flag) {
-        this.getSelecteItemData(row);
-      } else {
-        const index = this.expendRow.indexOf(row.index);
-        this.expendRow.splice(index, 1);
-      }
-    },
-    handleEdit(index, row) {
-      this.getSelecteItemData(row, "edit");
-      this.dialogFormVisible = true;
-    },
-    async getSelecteItemData(row, type) {
-      const restaurant = await getRestaurantDetail(row.restaurant_id);
-      const category = await getMenuById(row.category_id);
-
-      this.selectFoods = {...row,...{restaurant_name: restaurant.name,restaurant_address: restaurant.address,category_name: category.name}};
-      
-      this.selectMenu = { label: category.name, value: row.category_id };
-      this.tableData.splice(row.index, 1, { ...this.selectFoods });
-      this.$nextTick(() => {
-        this.expendRow.push(row.index);
-      });
-      if(type == 'edit' && this.restaurant_id != row.restaurant_id){
-        this.getMenu();
-      }
-    },
     specDelete(index) {
       this.specsTable.splice(index, 1);
     },
@@ -314,7 +278,6 @@ export default {
             lable: item.name,
             index: index
           });
-          
         });
       } catch (err) {
         console.log("获取食品种类失败", err);
@@ -379,17 +342,45 @@ export default {
         }
       });
     },
+    expand(row,expandedRows) {
+      this.flag = !this.flag;
+      if(this.flag){
+        this.getSelectData(row);
+      }else{
+        const index = this.expendRow.indexOf(row.index);
+        this.expendRow.splice(index, 1);
+      }
+    },
+    handleEdit(index, row) {
+      this.getSelectData(row, "edit");
+      this.dialogFormVisible = true;
+    },
+    //获得食品列表信息、食物分类、餐馆地址
+    async getSelectData(row, type) {
+      const restaurant = await getRestaurantDetail(row.restaurant_id);
+      const category = await getMenuById(row.category_id);
+
+      this.selectFoods = {...row,...{restaurant_name: restaurant.name,restaurant_address: restaurant.address,category_name: category.name}};
+      this.selectMenu = { label: category.name, value: row.category_id };
+      this.tableData.splice(row.index, 1, { ...this.selectFoods });
+    
+      if(type == 'edit'){
+        this.getMenu();
+      }else{
+        this.$nextTick(() => {
+          this.expendRow.push(row.index);
+        });
+      }
+    },
     //食品更新
     async updateFoods() {
       this.dialogFormVisible = false;
       try {
-        const subData = {
-          category_id: this.selectMenu.value,
-          specs: this.specsTable
-        };
-        const postData = { ...this.selectFoods, ...subData};
-        
+        const subData = {new_category_id: this.selectMenu.value,specs: this.specsTable};
+        const postData = {...this.selectFoods, ...subData};
+        // const postData = {...this.selectFoods};
         const res = await updateFoods(postData);
+        
         if (res.status == 1) {
           this.$message({
             type: "success",
