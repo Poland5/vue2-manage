@@ -102,7 +102,7 @@
               change-on-select>
             </el-cascader>
           </el-form-item>
-          <el-form-item label="店铺分类" :label-width="formLabelWidth">
+          <el-form-item label="店铺头像" :label-width="formLabelWidth">
             <el-upload
               class="avatar-uploader"
               :action="baseUrl + '/v1/addimg/shop'"
@@ -276,7 +276,7 @@ export default {
       }
     },
     async updateShop(){
-      Object.assign(this.shopDialogForm,this.address)
+      Object.assign(this.shopDialogForm,this.address);
       this.shopDialogForm.category = this.selecteShopOptions.join("/");
       const res = await updateShop(this.shopDialogForm);
       try{
