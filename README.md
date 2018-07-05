@@ -1,7 +1,6 @@
 # About
 
-此项目是[bailicangdu]作者的Elm后台管理系统项目。
-__注：,本项目只是根据作者提供的接口进行重新编写，已熟悉巩固相关技术栈知识。__
+此项目是 vue + element-ui 构建的后台管理系统。
 
 ## 技术栈
 vue2 + vuex + vue-router + webpack + ES6 + less + element-ui
@@ -21,6 +20,12 @@ vue2 + vuex + vue-router + webpack + ES6 + less + element-ui
 - [x] 文本编辑 -- 完成
 - [x] 管理员设置 -- 完成
 - [x] 说明 -- 完成
+
+## 部分截图
+
+<img src="https://github.com/bailicangdu/vue2-manage/blob/master/screenshots/manage_home.png"/>
+
+<img src="https://github.com/bailicangdu/vue2-manage/blob/master/screenshots/manage_shop.png"/>
 
 ## 项目运行
 ```
