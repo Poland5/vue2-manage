@@ -32,7 +32,7 @@ vue2 + vuex + vue-router + webpack + ES6 + less + element-ui
 # install dependencies
 npm install
 
-# serve with hot reload at localhost:8002
+# serve with hot reload at localhost:8003
 npm run dev
 
 # build for production with minification

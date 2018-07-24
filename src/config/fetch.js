@@ -38,7 +38,7 @@ export default async(url = '', data = {}, type = 'GET', method = 'fetch') => {
 			Object.defineProperty(requestConfig, 'body', {
 				value: JSON.stringify(data)
 			})
-		}
+    }
 
 		//发送数据
 		try {
